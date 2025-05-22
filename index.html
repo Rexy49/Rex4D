@@ -203,6 +203,47 @@
         padding: 8px 12px;
       }
     }
+
+    /* Hidden element for image export */
+    #imageExportContainer {
+      position: absolute;
+      left: -9999px;
+      width: 800px;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    #imageExportContainer h2 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .export-category {
+      margin-bottom: 15px;
+    }
+
+    .export-category h3 {
+      color: #2980b9;
+      border-bottom: 1px solid #3498db;
+      padding-bottom: 5px;
+    }
+
+    .export-numbers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .export-number {
+      background: #f8f9fa;
+      border: 1px solid #dfe6e9;
+      border-radius: 3px;
+      padding: 5px 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -215,11 +256,15 @@
     <div class="buttons">
       <button id="generateBtn" onclick="generateCombinations()">Generate</button>
       <button onclick="resetGrid()">Reset</button>
-      <button onclick="exportToFile()">Export</button>
+      <button onclick="exportToFile()">Export as Text</button>
+      <button onclick="exportToImage()">Export as Image</button>
     </div>
     
     <div id="output"></div>
   </div>
+
+  <!-- Hidden container for image export -->
+  <div id="imageExportContainer"></div>
 
   <script>
     // Store categories globally for export
@@ -464,6 +509,116 @@
       link.href = URL.createObjectURL(blob);
       link.download = `rex_4d_${new Date().toISOString().slice(0,10)}.txt`;
       link.click();
+    }
+
+    // Export results as an image (JPEG/PNG)
+    function exportToImage() {
+      if (Object.values(currentCategories).every(arr => arr.length === 0)) {
+        alert('No combinations to export. Please generate combinations first.');
+        return;
+      }
+
+      const container = document.getElementById('imageExportContainer');
+      container.innerHTML = '';
+      
+      // Create image content
+      const content = document.createElement('div');
+      
+      // Add title
+      const title = document.createElement('h2');
+      title.textContent = 'REX 4D BOX CHART RESULTS';
+      content.appendChild(title);
+      
+      // Add generation date
+      const date = document.createElement('p');
+      date.textContent = `Generated: ${new Date().toLocaleString()}`;
+      date.style.textAlign = 'center';
+      date.style.marginBottom = '20px';
+      content.appendChild(date);
+      
+      // Add input grid
+      const gridTitle = document.createElement('h3');
+      gridTitle.textContent = 'Input Grid:';
+      gridTitle.style.textAlign = 'center';
+      content.appendChild(gridTitle);
+      
+      const columns = getColumnValues();
+      const gridTable = document.createElement('div');
+      gridTable.style.display = 'flex';
+      gridTable.style.justifyContent = 'center';
+      gridTable.style.marginBottom = '20px';
+      
+      for (let col = 0; col < 4; col++) {
+        const colDiv = document.createElement('div');
+        colDiv.style.margin = '0 10px';
+        for (let row = 0; row < 4; row++) {
+          const cell = document.createElement('div');
+          cell.textContent = columns[col][row];
+          cell.style.textAlign = 'center';
+          cell.style.padding = '5px';
+          cell.style.border = '1px solid #ddd';
+          cell.style.margin = '2px';
+          colDiv.appendChild(cell);
+        }
+        gridTable.appendChild(colDiv);
+      }
+      content.appendChild(gridTable);
+      
+      // Add total count
+      const totalDiv = document.createElement('h3');
+      totalDiv.textContent = `Total Unique Combinations: ${Object.values(currentCategories).reduce((a, b) => a + b.length, 0)}`;
+      totalDiv.style.textAlign = 'center';
+      totalDiv.style.color = '#27ae60';
+      content.appendChild(totalDiv);
+      
+      // Add categories
+      for (const [category, numbers] of Object.entries(currentCategories)) {
+        if (numbers.length === 0) continue;
+        
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'export-category';
+        
+        const title = document.createElement('h3');
+        title.textContent = `${category} (${numbers.length})`;
+        categoryDiv.appendChild(title);
+        
+        const numbersDiv = document.createElement('div');
+        numbersDiv.className = 'export-numbers';
+        
+        numbers.forEach(num => {
+          const numSpan = document.createElement('span');
+          numSpan.className = 'export-number';
+          numSpan.textContent = num;
+          numbersDiv.appendChild(numSpan);
+        });
+        
+        categoryDiv.appendChild(numbersDiv);
+        content.appendChild(categoryDiv);
+      }
+      
+      container.appendChild(content);
+      
+      // Use html2canvas to convert to image
+      const loadScript = document.createElement('script');
+      loadScript.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+      loadScript.onload = function() {
+        // Give a small delay to ensure rendering is complete
+        setTimeout(() => {
+          html2canvas(container, {
+            scale: 2,
+            logging: false,
+            useCORS: true,
+            allowTaint: true
+          }).then(canvas => {
+            // Create download link
+            const link = document.createElement('a');
+            link.download = `rex_4d_${new Date().toISOString().slice(0,10)}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+          });
+        }, 100);
+      };
+      document.head.appendChild(loadScript);
     }
 
     // Initialize on load
