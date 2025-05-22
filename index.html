@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rex 4D Box Chart</title>
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2980b9;
+      --text-color: #2c3e50;
+      --bg-color: #f5f7fa;
+      --card-bg: #ffffff;
+      --border-color: #dfe6e9;
+      --success-color: #27ae60;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 15px;
+      line-height: 1.5;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 10px;
+    }
+    
+    h1 {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      margin: 0 0 15px 0;
+      color: var(--text-color);
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .description {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #7f8c8d;
+      font-size: 0.95rem;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(50px, 70px));
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    input[type="number"] {
+      width: 100%;
+      height: clamp(50px, 12vw, 70px);
+      font-size: clamp(18px, 5vw, 24px);
+      text-align: center;
+      border: 2px solid var(--primary-color);
+      border-radius: 8px;
+      background: var(--card-bg);
+      font-weight: bold;
+      transition: all 0.2s;
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+    
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    
+    button {
+      font-size: clamp(14px, 4vw, 16px);
+      padding: 10px 15px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+      flex: 1 1 auto;
+      min-width: 120px;
+      max-width: 200px;
+    }
+    
+    button:hover {
+      background-color: var(--secondary-color);
+      transform: translateY(-2px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+      transform: none;
+      opacity: 0.7;
+    }
+    
+    .category {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 15px;
+      margin: 15px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .category h3 {
+      margin: 0 0 10px 0;
+      color: var(--text-color);
+      font-size: clamp(1.1rem, 4vw, 1.3rem);
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 5px;
+    }
+    
+    .results {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .number {
+      background: #f8f9fa;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      font-size: clamp(14px, 3vw, 16px);
+      text-align: center;
+      transition: all 0.2s;
+      flex: 1 0 calc(25% - 12px);
+      max-width: calc(25% - 6px);
+    }
+    
+    .total-count {
+      font-size: clamp(1rem, 4vw, 1.2rem);
+      color: var(--success-color);
+      margin-bottom: 15px;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    /* Input validation styling */
+    input:invalid {
+      border-color: var(--danger-color);
+      animation: shake 0.5s;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .grid {
+        grid-template-columns: repeat(4, minmax(40px, 1fr));
+        gap: 6px;
+      }
+      
+      input[type="number"] {
+        height: 50px;
+        font-size: 18px;
+      }
+      
+      .number {
+        flex: 1 0 calc(33% - 8px);
+        max-width: calc(33% - 6px);
+        padding: 6px 8px;
+        font-size: 14px;
+      }
+      
+      .buttons {
+        gap: 8px;
+      }
+      
+      button {
+        min-width: 100px;
+        padding: 8px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Rex 4D Box Chart</h1>
+    <p class="description">Enter numbers in the grid below to generate all possible 4D combinations</p>
+    
+    <div class="grid" id="inputGrid"></div>
+    
+    <div class="buttons">
+      <button id="generateBtn" onclick="generateCombinations()">Generate</button>
+      <button onclick="resetGrid()">Reset</button>
+      <button onclick="exportToFile()">Export</button>
+    </div>
+    
+    <div id="output"></div>
+  </div>
+
+  <script>
+    // Store categories globally for export
+    let currentCategories = {
+      '24-way': [],
+      '12-way': [],
+      '6-way': [],
+      '4-way': [],
+      '1-way': []
+    };
+
+    // Initialize grid with default values
+    function initGrid() {
+      const grid = document.getElementById('inputGrid');
+      const defaultValues = [
+        '7', '4', '9', '5',
+        '2', '1', '6', '3',
+        '2', '8', '5', '4',
+        '6', '6', '4', '3'
+      ];
+      
+      grid.innerHTML = '';
+      for (let i = 0; i < 16; i++) {
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '0';
+        input.max = '9';
+        input.value = defaultValues[i];
+        input.id = `cell-${Math.floor(i/4)}-${i%4}`;
+        // Prevent entering non-single-digit numbers
+        input.oninput = function() {
+          if (this.value.length > 1) {
+            this.value = this.value.slice(0,1);
+          }
+          validateInputs();
+        };
+        // Validate on blur
+        input.onblur = function() {
+          if (this.value < 0) this.value = 0;
+          if (this.value > 9) this.value = 9;
+          validateInputs();
+        };
+        grid.appendChild(input);
+      }
+      
+      // Initial validation
+      validateInputs();
+    }
+
+    // Validate all inputs and enable/disable generate button
+    function validateInputs() {
+      const inputs = document.querySelectorAll('#inputGrid input');
+      const generateBtn = document.getElementById('generateBtn');
+      let allValid = true;
+      
+      inputs.forEach(input => {
+        const value = input.value.trim();
+        if (value === '' || isNaN(value) || value < 0 || value > 9) {
+          allValid = false;
+        }
+      });
+      
+      generateBtn.disabled = !allValid;
+      return allValid;
+    }
+
+    // Get values organized by columns
+    function getColumnValues() {
+      const inputs = document.querySelectorAll('#inputGrid input');
+      const columns = [[], [], [], []];
+      
+      for (let i = 0; i < 16; i++) {
+        const colIndex = i % 4;
+        let value = inputs[i].value;
+        // Ensure value is between 0-9
+        value = Math.max(0, Math.min(9, parseInt(value) || 0));
+        columns[colIndex].push(value.toString());
+      }
+      
+      return columns;
+    }
+
+    // Generate all column-wise combinations
+    function generateCombinations() {
+      if (!validateInputs()) {
+        alert('Please fill all boxes with numbers between 0-9');
+        return;
+      }
+      
+      const columns = getColumnValues();
+      const combos = new Set();
+      
+      // Generate all possible combinations
+      for (let a = 0; a < 4; a++) {
+        for (let b = 0; b < 4; b++) {
+          for (let c = 0; c < 4; c++) {
+            for (let d = 0; d < 4; d++) {
+              const combo = columns[0][a] + columns[1][b] + columns[2][c] + columns[3][d];
+              combos.add(combo);
+            }
+          }
+        }
+      }
+      
+      const combinations = Array.from(combos).sort();
+      displayResults(combinations);
+    }
+
+    // Categorize combinations based on digit patterns
+    function categorize(combos) {
+      const categories = {
+        '24-way': [], // All digits unique (ABCD)
+        '12-way': [], // Three unique digits (AABC, ABBC, ABCC)
+        '6-way': [],  // Two unique digits both appearing twice (AABB)
+        '4-way': [],  // Two unique digits, one appears 3 times (AAAB)
+        '1-way': []   // All digits identical (AAAA)
+      };
+
+      combos.forEach(combo => {
+        const digits = combo.split('');
+        const unique = new Set(digits);
+        const uniqueCount = unique.size;
+        
+        if (uniqueCount === 4) {
+          categories['24-way'].push(combo);
+        } else if (uniqueCount === 3) {
+          categories['12-way'].push(combo);
+        } else if (uniqueCount === 2) {
+          const counts = {};
+          digits.forEach(d => counts[d] = (counts[d] || 0) + 1);
+          const countValues = Object.values(counts);
+          if (countValues.includes(3)) {
+            categories['4-way'].push(combo);
+          } else {
+            categories['6-way'].push(combo);
+          }
+        } else {
+          categories['1-way'].push(combo);
+        }
+      });
+
+      return categories;
+    }
+
+    // Display results in categorized sections
+    function displayResults(combinations) {
+      currentCategories = categorize(combinations);
+      const output = document.getElementById('output');
+      output.innerHTML = '';
+      
+      // Show total count
+      const totalDiv = document.createElement('div');
+      totalDiv.className = 'total-count';
+      totalDiv.textContent = `Total Unique Combinations: ${combinations.length}`;
+      output.appendChild(totalDiv);
+      
+      // Display each category
+      for (const [category, numbers] of Object.entries(currentCategories)) {
+        if (numbers.length === 0) continue;
+        
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'category';
+        
+        const title = document.createElement('h3');
+        title.textContent = `${category} (${numbers.length})`;
+        categoryDiv.appendChild(title);
+        
+        const resultsDiv = document.createElement('div');
+        resultsDiv.className = 'results';
+        
+        numbers.forEach(num => {
+          const numSpan = document.createElement('span');
+          numSpan.className = 'number';
+          numSpan.textContent = num;
+          resultsDiv.appendChild(numSpan);
+        });
+        
+        categoryDiv.appendChild(resultsDiv);
+        output.appendChild(categoryDiv);
+      }
+    }
+
+    // Reset the input grid and clear results
+    function resetGrid() {
+      const inputs = document.querySelectorAll('#inputGrid input');
+      inputs.forEach(input => input.value = '');
+      document.getElementById('output').innerHTML = '';
+      validateInputs();
+    }
+
+    // Export results to a text file
+    function exportToFile() {
+      if (Object.values(currentCategories).every(arr => arr.length === 0)) {
+        alert('No combinations to export. Please generate combinations first.');
+        return;
+      }
+      
+      let text = 'REX 4D BOX CHART RESULTS\n\n';
+      text += `Generated: ${new Date().toLocaleString()}\n\n`;
+      
+      // Add input grid values
+      const columns = getColumnValues();
+      text += 'Input Grid:\n';
+      for (let row = 0; row < 4; row++) {
+        text += `${columns[0][row]}\t${columns[1][row]}\t${columns[2][row]}\t${columns[3][row]}\n`;
+      }
+      
+      text += '\n=== ALL COMBINATIONS (Compact) ===\n';
+      
+      // Combine all numbers and sort them
+      const allNumbers = [
+        ...currentCategories['24-way'],
+        ...currentCategories['12-way'],
+        ...currentCategories['6-way'],
+        ...currentCategories['4-way'],
+        ...currentCategories['1-way']
+      ].sort();
+      
+      // Format in compact columns (4 numbers per row)
+      for (let i = 0; i < allNumbers.length; i += 4) {
+        const row = allNumbers.slice(i, i + 4);
+        text += row.join('\t') + '\n';
+      }
+      
+      text += '\n=== BY CATEGORY ===\n';
+      
+      // Add categorized sections
+      for (const [category, numbers] of Object.entries(currentCategories)) {
+        if (numbers.length === 0) continue;
+        
+        text += `\n${category.toUpperCase()} (${numbers.length}):\n`;
+        
+        for (let i = 0; i < numbers.length; i += 8) {
+          const row = numbers.slice(i, i + 8);
+          text += row.join('\t') + '\n';
+        }
+      }
+      
+      // Create and download the file
+      const blob = new Blob([text], {type: 'text/plain'});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `rex_4d_${new Date().toISOString().slice(0,10)}.txt`;
+      link.click();
+    }
+
+    // Initialize on load
+    window.onload = initGrid;
+  </script>
+</body>
+</html>
